@@ -1,4 +1,4 @@
-use 5.006;
+use 5.008_001;
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
@@ -17,4 +17,5 @@ WriteMakefile(
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Text-HistogramChart-*' },
+    PM_FILTER           => 'grep -v \\"\\$\:\:DBG\\"'
 );

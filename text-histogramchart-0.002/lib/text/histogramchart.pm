@@ -2,19 +2,19 @@ package Text::HistogramChart;
 
 ## no critic (Subroutines::RequireArgUnpacking)
 ## no critic (RequirePodAtEnd)
+# By using =encoding utf8 this module would require perl 5.10. No need for that!
+## no critic (Documentation::RequirePODUseEncodingUTF8 )
 
-use 5.006_001;
+use 5.008_001;
 use strict;
 use warnings;
 
-# Controlled debugging environment (BEFORE custom packages and files)
-require Debug::SimpleOptional;
-# HUOM! OBS! MUY IMPORTANTE! We create a GLOBAL variable.
-if(! defined $::DBG) {
-	$::DBG = Debug::SimpleOptional->new();
-}
+# Controlled debugging environment (BEFORE custom packages and files): $::DBG
+require Debug::SimpleOptional; # $::DBG
+# HUOM! OBS! MUY IMPORTANTE! We create a GLOBAL variable: $::DBG
+if(! defined $::DBG) { $::DBG = Debug::SimpleOptional->new(); }
 $::DBG->set_level('debug');
-# Activate here if needed!
+# Activate here if needed! $::DBG
 #$::DBG->activate();
 
 =head1 NAME
@@ -23,12 +23,11 @@ Text::HistogramChart - Make Text Histogram (Upright Bars) Charts
 
 =head1 VERSION
 
-Version 0.001
+Version 0.002
 
 =cut
 
-our $VERSION = "0.001"; ## no critic (ProhibitInterpolationOfLiterals)
-$VERSION = eval $VERSION; ## no critic (BuiltinFunctions::ProhibitStringyEval)
+use version 0.77 (); our $VERSION = 0.002; # Require version 0.77 of module "version". Even for Perl v.5.10.0, get latest bug-fixes and API
 
 
 =head1 SYNOPSIS
@@ -144,7 +143,7 @@ Requires the following modules:
 
 =over 4
 
-=item NONE
+=item Hash::Util
 
 =back
 
@@ -153,16 +152,13 @@ Requires the following modules:
 
 use utf8;
 use Hash::Util qw{lock_keys unlock_keys};
-#use English '-no_match_vars';
-use Carp 'croak';
 
 # Global creator
 BEGIN {
 	use Exporter ();
-	our (@ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
+	our (@ISA, @EXPORT_OK, %EXPORT_TAGS);
 
 	@ISA         = qw(Exporter DynaLoader);
-	@EXPORT      = qw();
 	%EXPORT_TAGS = ( );     # eg: TAG => [ qw!name1 name2! ],
 	@EXPORT_OK   = qw();
 }
@@ -178,6 +174,7 @@ my $FALSE = 0;
 my $EMPTY_STR = q{};
 my @EMPTY_ARRAY = (); ## no critic (ProhibitUselessInitialization)
 my $SPACE = q{ };
+my $HALF_ROW = 0.5; ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
 
 # DEFAULTS
 my $DEFAULT_SCREEN_HEIGHT = 10; ## no critic (ProhibitMagicNumbers)
@@ -306,8 +303,8 @@ sub chart {
 	# then all the better for you (no need to calculate the legend yourself).
 	# But only write the legend if user demands it (parameter WRITE_LEGEND).
 	# Even without writing the legend, the legend values define the distance between rows.
-	my $sprf_format = '%-' . $self->{'legend_horizontal_width'} . 's';
-	$::DBG->debug('DEBUG', "Var \$sprf_format=" . $sprf_format . ".\n");
+	my $sprf_format = q{%-} . $self->{'legend_horizontal_width'} . q{s};
+	$::DBG->debug('DEBUG', "Var \$sprf_format=$sprf_format.\n");
 	if(defined $self->{'legend_values'} && scalar @{$self->{'legend_values'}} > 0) {
 		@legend_values = @{$self->{'legend_values'}};
 		if(scalar(@legend_values) != $self->{'screen_height'}) {
@@ -358,15 +355,15 @@ sub chart {
 		#my $screen_top_row = $highest_value - $lowest_value; //TODO
 		#my $screen_bottom_row = 0; //TODO
 		for(my $i_row = $screen_bottom_row; $i_row <= $screen_top_row; $i_row++) {
-			push @legend_values, (sprintf $sprf_format, int(($i_row + 1) * $amount_per_row + 0.5));
+			push @legend_values, (sprintf $sprf_format, int(($i_row + 1) * $amount_per_row + $HALF_ROW));
 			#push @legend_values, (sprintf $sprf_format, int(($i_row + $lowest_value) * $amount_per_row + 0.5)); //TODO
 		}
 	}
 	$::DBG->debug('DEBUG', sub {print "[DEBUG] Var \@legend_values=" . (join ":", @legend_values) . ".\n"});
 	if($self->{'write_legend'} == 1) {
-		for(my $i_row = $self->{'screen_height'} - 1; $i_row >= 0; $i_row--) {
-			$output_rows[$i_row] .= sprintf $sprf_format, int($legend_values[$i_row]);
-			$::DBG->debug('DEBUG', sub {$output_rows[$i_row] .=  ".";}); # ATTN! modifying output for Debug!
+		for(my $i_row = $self->{'screen_height'} - 1; $i_row >= 0; $i_row--) { ## no critic (ControlStructures::ProhibitCStyleForLoops)
+			$output_rows[$i_row] .= sprintf $sprf_format, int $legend_values[$i_row];
+			$::DBG->debug('DEBUG', sub {$output_rows[$i_row] .=  q{.};}); # ATTN! modifying output for Debug!
 		}
 	}
 
@@ -378,21 +375,21 @@ sub chart {
 	my $screen_bottom_row = 0;
 	my $screen_floor_row = $screen_bottom_row;
 	if($self->{'use_floor'} == 1) {
-		for(my $i_legend_row = 0; $i_legend_row < @legend_values; $i_legend_row++) {
-			if($legend_values[$i_legend_row] == $self->{'floor_value'}) {
-				$screen_floor_row = $i_legend_row;
+		for(0..@legend_values-1) {
+			if($legend_values[$_] == $self->{'floor_value'}) {
+				$screen_floor_row = $_;
 			}
 		}
 	}
-	$::DBG->debug('DEBUG', "Var \$screen_floor_row=" . $screen_floor_row . ".\n");
+	$::DBG->debug('DEBUG', "Var \$screen_floor_row=$screen_floor_row.\n");
 	$::DBG->debug('DEBUG', "WRITE THE GRAPH.\n");
 	foreach my $value (@values) {
 		$::DBG->debug('DEBUG', ".\n");
-		$::DBG->debug('DEBUG', "     Var \$value=" . $value . ".\n");
+		$::DBG->debug('DEBUG', "     Var \$value=$value.\n");
 		for(my $i_row = $screen_bottom_row; $i_row <= $screen_top_row; $i_row++) {
 			if($value != $self->{'floor_value'}) { # If value == 0, just write spaces.
 				#$::DBG->debug('DEBUG', "Var \$i_row=" . $i_row . ".\n");
-				if($i_row == $screen_bottom_row) { # Bottom row
+				if($i_row == $screen_bottom_row) { ## no critic (ControlStructures::ProhibitCascadingIfElse)
 					$::DBG->debug('DEBUG', "Screen Bottom row.\n");
 					if($i_row < $screen_floor_row) {
 						$::DBG->debug('DEBUG', 'Var $i_row < $screen_floor_row' . ":". $i_row ."<". $screen_floor_row . ".\n");
@@ -415,7 +412,7 @@ sub chart {
 							}
 						}
 						else {
-							$::DBG->debug('DEBUG', "Control has entered an if clause which is undefined. Line " . __LINE__ . "\".\n");
+							$::DBG->debug('DEBUG', 'Control has entered an if clause which is undefined. Line ' . __LINE__ . ".\n");
 						}
 					}
 					elsif($i_row >= $screen_floor_row) {
@@ -439,11 +436,11 @@ sub chart {
 							$output_rows[$i_row] .= center_text($self->{'write_value'} ? $value : $self->{'bar_char'}, $self->{'horizontal_width'}, $SPACE, 'right');
 						}
 						else {
-							$::DBG->debug('DEBUG', "Control has entered an if clause which is undefined. Line " . __LINE__ . "\".\n");
+							$::DBG->debug('DEBUG', 'Control has entered an if clause which is undefined. Line ' . __LINE__ . ".\n");
 						}
 					}
 					else {
-						$::DBG->debug('DEBUG', "Control has entered an if clause which is undefined. Line " . __LINE__ . "\".\n");
+						$::DBG->debug('DEBUG', 'Control has entered an if clause which is undefined. Line ' . __LINE__ . ".\n");
 					}
 				}
 
@@ -463,7 +460,7 @@ sub chart {
 						$output_rows[$i_row] .= $horizontal_width_empty;
 					}
 					else {
-						$::DBG->debug('DEBUG', "Control has entered an if clause which is undefined. Line " . __LINE__ . "\".\n");
+						$::DBG->debug('DEBUG', 'Control has entered an if clause which is undefined. Line ' . __LINE__ . ".\n");
 					}
 				}
 
@@ -501,7 +498,7 @@ sub chart {
 						$output_rows[$i_row] .= $horizontal_width_empty;
 					}
 					else {
-						$::DBG->debug('DEBUG', "Control has entered an if clause which is undefined. Line " . __LINE__ . "\".\n");
+						$::DBG->debug('DEBUG', 'Control has entered an if clause which is undefined. Line ' . __LINE__ . ".\n");
 					}
 				}
 
@@ -527,14 +524,14 @@ sub chart {
 						$output_rows[$i_row] .= $horizontal_width_empty;
 					}
 					else {
-						$::DBG->debug('DEBUG', "Control has entered an if clause which is undefined. Line " . __LINE__ . "\".\n");
+						$::DBG->debug('DEBUG', 'Control has entered an if clause which is undefined. Line ' . __LINE__ . ".\n");
 					}
 				}
 				else {
-					$::DBG->debug('DEBUG', "Control has entered an if clause which is undefined. Line " . __LINE__ . "\".\n");
+					$::DBG->debug('DEBUG', 'Control has entered an if clause which is undefined. Line ' . __LINE__ . ".\n");
 				}
 			}
-			else { # $value == $self->{'floor_value'}
+			else { # $value is same as $self->{'floor_value'}
 				$::DBG->debug('DEBUG', "\$value == \$self->{'floor_value'}.\n");
 				if($self->{'floor_value'} == $legend_values[$i_row]) { # This is the floor row, the "0" row.
 					if($self->{'write_floor_value'} == 1) {
