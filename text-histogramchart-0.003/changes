@@ -7,3 +7,5 @@ Revision history for Text-HistogramChart
         Added code to Makefile.pl to remove the debug instructions in the installation code.
         Modified code to accommodate Perl Critic, though not completely.
 
+0.003   2012-Jul-10
+        Minor corrections.

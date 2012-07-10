@@ -15,7 +15,6 @@ WriteMakefile(
     PREREQ_PM => {
         'Test::More' => 0,
     },
-    dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
+    dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz'},
     clean               => { FILES => 'Text-HistogramChart-*' },
-    PM_FILTER           => 'grep -v \\"\\$\:\:DBG\\"'
 );

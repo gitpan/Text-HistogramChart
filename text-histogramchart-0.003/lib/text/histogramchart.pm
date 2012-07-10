@@ -1,4 +1,4 @@
-package Text::HistogramChart;
+	package Text::HistogramChart;
 
 ## no critic (Subroutines::RequireArgUnpacking)
 ## no critic (RequirePodAtEnd)
@@ -9,13 +9,6 @@ use 5.008_001;
 use strict;
 use warnings;
 
-# Controlled debugging environment (BEFORE custom packages and files): $::DBG
-require Debug::SimpleOptional; # $::DBG
-# HUOM! OBS! MUY IMPORTANTE! We create a GLOBAL variable: $::DBG
-if(! defined $::DBG) { $::DBG = Debug::SimpleOptional->new(); }
-$::DBG->set_level('debug');
-# Activate here if needed! $::DBG
-#$::DBG->activate();
 
 =head1 NAME
 
@@ -23,11 +16,11 @@ Text::HistogramChart - Make Text Histogram (Upright Bars) Charts
 
 =head1 VERSION
 
-Version 0.002
+Version 0.003
 
 =cut
 
-use version 0.77 (); our $VERSION = 0.002; # Require version 0.77 of module "version". Even for Perl v.5.10.0, get latest bug-fixes and API
+use version 0.77 (); our $VERSION = 0.003; # Require version 0.77 of module "version". Even for Perl v.5.10.0, get latest bug-fixes and API
 
 
 =head1 SYNOPSIS
@@ -284,7 +277,6 @@ Returns >= 1, if successful, else $self->{'error_string'} contains the error.
 =cut
 
 sub chart {
-	$::DBG->enter_sub();
 	my $return_value = 1;
 
 	my $self = shift;
@@ -304,7 +296,6 @@ sub chart {
 	# But only write the legend if user demands it (parameter WRITE_LEGEND).
 	# Even without writing the legend, the legend values define the distance between rows.
 	my $sprf_format = q{%-} . $self->{'legend_horizontal_width'} . q{s};
-	$::DBG->debug('DEBUG', "Var \$sprf_format=$sprf_format.\n");
 	if(defined $self->{'legend_values'} && scalar @{$self->{'legend_values'}} > 0) {
 		@legend_values = @{$self->{'legend_values'}};
 		if(scalar(@legend_values) != $self->{'screen_height'}) {
@@ -319,7 +310,6 @@ sub chart {
 			$highest_value = $self->{'roof_value'};
 		}
 		else {
-			$::DBG->debug('DEBUG', "Find out the highest value.\n");
 			foreach my $value (@values) {
 				if($value > $highest_value) {
 					$highest_value = $value;
@@ -331,23 +321,16 @@ sub chart {
 			$lowest_value = $self->{'bottom_value'};
 		}
 		else {
-			$::DBG->debug('DEBUG', "Find out the lowest value.\n");
 			foreach my $value (@values) {
 				if($value < $lowest_value) {
 					$lowest_value = $value;
 				}
 			}
 		}
-		$::DBG->debug('DEBUG', "Var \$highest_value=" . $highest_value . ".\n");
-		$::DBG->debug('DEBUG', "Var \$lowest_value=" . $lowest_value . ".\n");
 		my $rows_for_one = $self->{'screen_height'} / $highest_value;
-		$::DBG->debug('DEBUG', "Var \$rows_for_one=" . $rows_for_one . ".\n");
 		my $amount_per_row = $highest_value / $self->{'screen_height'};
-		$::DBG->debug('DEBUG', "Var \$amount_per_row=" . $amount_per_row . ".\n");
 		#my $rows_for_one = $self->{'screen_height'} / ($highest_value - $lowest_value + 1); //TODO
-		#$::DBG->debug('DEBUG', "Var \$rows_for_one=" . $rows_for_one . ".\n"); //TODO
 		#my $amount_per_row = ($highest_value - $lowest_value + 1) / $self->{'screen_height'}; //TODO
-		#$::DBG->debug('DEBUG', "Var \$amount_per_row=" . $amount_per_row . ".\n"); //TODO
 
 		# Make a legend based on lowest and highest value in @values
 		my $screen_top_row = $self->{'screen_height'} - 1;
@@ -359,11 +342,9 @@ sub chart {
 			#push @legend_values, (sprintf $sprf_format, int(($i_row + $lowest_value) * $amount_per_row + 0.5)); //TODO
 		}
 	}
-	$::DBG->debug('DEBUG', sub {print "[DEBUG] Var \@legend_values=" . (join ":", @legend_values) . ".\n"});
 	if($self->{'write_legend'} == 1) {
 		for(my $i_row = $self->{'screen_height'} - 1; $i_row >= 0; $i_row--) { ## no critic (ControlStructures::ProhibitCStyleForLoops)
 			$output_rows[$i_row] .= sprintf $sprf_format, int $legend_values[$i_row];
-			$::DBG->debug('DEBUG', sub {$output_rows[$i_row] .=  q{.};}); # ATTN! modifying output for Debug!
 		}
 	}
 
@@ -381,26 +362,16 @@ sub chart {
 			}
 		}
 	}
-	$::DBG->debug('DEBUG', "Var \$screen_floor_row=$screen_floor_row.\n");
-	$::DBG->debug('DEBUG', "WRITE THE GRAPH.\n");
 	foreach my $value (@values) {
-		$::DBG->debug('DEBUG', ".\n");
-		$::DBG->debug('DEBUG', "     Var \$value=$value.\n");
 		for(my $i_row = $screen_bottom_row; $i_row <= $screen_top_row; $i_row++) {
 			if($value != $self->{'floor_value'}) { # If value == 0, just write spaces.
-				#$::DBG->debug('DEBUG', "Var \$i_row=" . $i_row . ".\n");
 				if($i_row == $screen_bottom_row) { ## no critic (ControlStructures::ProhibitCascadingIfElse)
-					$::DBG->debug('DEBUG', "Screen Bottom row.\n");
 					if($i_row < $screen_floor_row) {
-						$::DBG->debug('DEBUG', 'Var $i_row < $screen_floor_row' . ":". $i_row ."<". $screen_floor_row . ".\n");
 						if($value > $legend_values[$i_row]) { # Write empty space
-							$::DBG->debug('DEBUG', 'Var $value > $legend_values[$i_row] && $value < $self->{\'floor_value\'}' . ":". $value .">". $legend_values[$i_row] .  "&&" . $value ."<". $self->{'floor_value'} . ".\n");
 							$output_rows[$i_row] .= $horizontal_width_empty;
 						}
 						elsif($value <= $legend_values[$i_row]) { # Write value
-							#$::DBG->debug('DEBUG', '$value <= $legend_values[$i_row]' . ":". $value ."<=". $legend_values[$i_row] . ".\n");
 							if(length($value) > $self->{'horizontal_width'}) { # Doesn't fit on the row.
-								$::DBG->debug('DEBUG', 'length($value) > $self->{\'horizontal_width\'}' . ":". length($value) .">". $self->{'horizontal_width'} . ".\n");
 								$output_rows[$i_row] .= center_text(
 										$self->{'write_always_under_value'} ? $self->{'under_value_char'} : ($self->{'write_value'} ? $value : $self->{'bar_char'}),
 										$self->{'horizontal_width'}, $SPACE, 'right');
@@ -412,71 +383,55 @@ sub chart {
 							}
 						}
 						else {
-							$::DBG->debug('DEBUG', 'Control has entered an if clause which is undefined. Line ' . __LINE__ . ".\n");
 						}
 					}
 					elsif($i_row >= $screen_floor_row) {
-						$::DBG->debug('DEBUG', 'Var $i_row > $screen_floor_row' . ":". $i_row .">". $screen_floor_row . ".\n");
 						if($value >= $legend_values[$i_row + 1]) { # Write bar char
-							$::DBG->debug('DEBUG', 'Var $value >= $legend_values[\$i_row + 1]' . ":". $value .">=". $legend_values[$i_row + 1] . ".\n");
 							$output_rows[$i_row] .= center_text($self->{'bar_char'}, $self->{'horizontal_width'}, $SPACE, 'right');
 						}
 						elsif($value >= $legend_values[$i_row] && $value < $legend_values[$i_row + 1]) { # Write value
-							$::DBG->debug('DEBUG', '$value >= $legend_values[$i_row - 1] && $value < $legend_values[$i_row]' . ":". $value .">=". $legend_values[$i_row - 1] ."&&". $value ."<". $legend_values[$i_row] . ".\n");
 							$output_rows[$i_row] .= center_text($self->{'write_value'} ? $value : $self->{'bar_char'}, $self->{'horizontal_width'}, $SPACE, 'right');
 						}
 						elsif($value < $legend_values[$i_row] && $value >= $self->{'floor_value'}) { # Write value maybe
-							$::DBG->debug('DEBUG', 'Var $value < $legend_values[\$i_row] && $value >= $self->{\'floor_value\'}' . ":". $value ."<". $legend_values[$i_row] ."&&". $value .">=". $self->{'floor_value'} . ".\n");
 							$output_rows[$i_row] .= center_text(
 									$self->{'write_always_under_value'} ? $value : '',
 									$self->{'horizontal_width'}, $SPACE, 'right');
 						}
 						elsif($value < $legend_values[$i_row] && $value < $self->{'floor_value'}) { # Write value
-							$::DBG->debug('DEBUG', 'Var $value < $legend_values[\$i_row] && $value >= $self->{\'floor_value\'}' . ":". $value ."<". $legend_values[$i_row] ."&&". $value .">=". $self->{'floor_value'} . ".\n");
 							$output_rows[$i_row] .= center_text($self->{'write_value'} ? $value : $self->{'bar_char'}, $self->{'horizontal_width'}, $SPACE, 'right');
 						}
 						else {
-							$::DBG->debug('DEBUG', 'Control has entered an if clause which is undefined. Line ' . __LINE__ . ".\n");
 						}
 					}
 					else {
-						$::DBG->debug('DEBUG', 'Control has entered an if clause which is undefined. Line ' . __LINE__ . ".\n");
 					}
 				}
 
 				# (Possible) middle rows (floor down)
 				elsif($i_row < $screen_floor_row && $i_row > $screen_bottom_row) {
-					$::DBG->debug('DEBUG', "Screen Middle row (floor down).\n");
 					if($value <= $legend_values[$i_row - 1]) { # Write bar char
-						$::DBG->debug('DEBUG', 'Var $value <= $legend_values[\$i_row + 1]' . ":". $value ."<=". $legend_values[$i_row + 1] . ".\n");
 						$output_rows[$i_row] .= center_text($self->{'bar_char'}, $self->{'horizontal_width'}, $SPACE, 'right');
 					}
 					elsif($value <= $legend_values[$i_row] && $value > $legend_values[$i_row - 1]) { # Write value
-						$::DBG->debug('DEBUG', '$value <= $legend_values[$i_row - 1] && $value > $legend_values[$i_row]' . ":". $value ."<=". $legend_values[$i_row - 1] ."&&". $value .">". $legend_values[$i_row] . ".\n");
 						$output_rows[$i_row] .= center_text($self->{'write_value'} ? $value : $self->{'bar_char'}, $self->{'horizontal_width'}, $SPACE, 'right');
 					}
 					elsif($value > $legend_values[$i_row]) { # Write white space
-						$::DBG->debug('DEBUG', 'Var $value > $legend_values[\$i_row]' . ":". $value .">". $legend_values[$i_row] . ".\n");
 						$output_rows[$i_row] .= $horizontal_width_empty;
 					}
 					else {
-						$::DBG->debug('DEBUG', 'Control has entered an if clause which is undefined. Line ' . __LINE__ . ".\n");
 					}
 				}
 
 				# Floor row
 				elsif($i_row == $screen_floor_row) {
-					$::DBG->debug('DEBUG', "Screen Middle row (floor up).\n");
 					if($self->{'write_floor'} == 1) {
 						$output_rows[$i_row] .= center_text('-', $self->{'horizontal_width'}, "-", 'right');
 					}
 					else {
 						if($value > $legend_values[$i_row - 1] && $value < $legend_values[$i_row + 1]) { # Write value
-							$::DBG->debug('DEBUG', '$value >= $legend_values[$i_row - 1] && $value < $legend_values[$i_row]' . ":". $value .">=". $legend_values[$i_row - 1] ."&&". $value ."<". $legend_values[$i_row] . ".\n");
 							$output_rows[$i_row] .= center_text($self->{'write_value'} ? $value : $self->{'bar_char'}, $self->{'horizontal_width'}, $SPACE, 'right');
 						}
 						else { # Write bar char
-							$::DBG->debug('DEBUG', 'Var $value >= $legend_values[\$i_row + 1]' . ":". $value .">=". $legend_values[$i_row + 1] . ".\n");
 							$output_rows[$i_row] .= center_text($self->{'bar_char'}, $self->{'horizontal_width'}, $SPACE, 'right');
 						}
 					}
@@ -484,31 +439,23 @@ sub chart {
 
 				# (Possible) middle rows (floor up)
 				elsif($i_row > $screen_floor_row && $i_row < $screen_top_row) {
-					$::DBG->debug('DEBUG', "Screen Middle row (floor up).\n");
 					if($value >= $legend_values[$i_row + 1]) { # Write bar char
-						$::DBG->debug('DEBUG', 'Var $value >= $legend_values[\$i_row + 1]' . ":". $value .">=". $legend_values[$i_row + 1] . ".\n");
 						$output_rows[$i_row] .= center_text($self->{'bar_char'}, $self->{'horizontal_width'}, $SPACE, 'right');
 					}
 					elsif($value >= $legend_values[$i_row] && $value < $legend_values[$i_row + 1]) { # Write value
-						$::DBG->debug('DEBUG', '$value >= $legend_values[$i_row - 1] && $value < $legend_values[$i_row]' . ":". $value .">=". $legend_values[$i_row - 1] ."&&". $value ."<". $legend_values[$i_row] . ".\n");
 						$output_rows[$i_row] .= center_text($self->{'write_value'} ? $value : $self->{'bar_char'}, $self->{'horizontal_width'}, $SPACE, 'right');
 					}
 					elsif($value < $legend_values[$i_row]) { # Write white space
-						$::DBG->debug('DEBUG', 'Var $value < $legend_values[\$i_row]' . ":". $value ."<". $legend_values[$i_row] . ".\n");
 						$output_rows[$i_row] .= $horizontal_width_empty;
 					}
 					else {
-						$::DBG->debug('DEBUG', 'Control has entered an if clause which is undefined. Line ' . __LINE__ . ".\n");
 					}
 				}
 
 				# Top row, here value is only >= or <!
 				elsif($i_row == $screen_top_row) {
-					$::DBG->debug('DEBUG', "Screen Top row.\n");
 					if($value >= $legend_values[$i_row]) { # Write value or bar char
-						$::DBG->debug('DEBUG', '$value >= $legend_values[$i_row]' . ":". $value .">=". $legend_values[$i_row] . ".\n");
 						if(length($value) > $self->{'horizontal_width'}) { # Doesn't fit on the row.
-							$::DBG->debug('DEBUG', 'length($value) > $self->{\'horizontal_width\'}' . ":". length($value) .">". $self->{'horizontal_width'} . ".\n");
 							$output_rows[$i_row] .= center_text(
 									$self->{'write_always_over_value'} ? $self->{'over_value_char'} : ($self->{'write_value'} ? $value : $self->{'bar_char'}),
 									$self->{'horizontal_width'}, $SPACE, 'right');
@@ -520,19 +467,15 @@ sub chart {
 						}
 					}
 					elsif($value < $legend_values[$i_row]) { # Write white space
-						$::DBG->debug('DEBUG', 'Var $value < $legend_values[\$i_row] && $value >= $self->{\'floor_value\'}' . ":". $value ."<". $legend_values[$i_row] ."&&". $value .">=". $self->{'floor_value'} . ".\n");
 						$output_rows[$i_row] .= $horizontal_width_empty;
 					}
 					else {
-						$::DBG->debug('DEBUG', 'Control has entered an if clause which is undefined. Line ' . __LINE__ . ".\n");
 					}
 				}
 				else {
-					$::DBG->debug('DEBUG', 'Control has entered an if clause which is undefined. Line ' . __LINE__ . ".\n");
 				}
 			}
 			else { # $value is same as $self->{'floor_value'}
-				$::DBG->debug('DEBUG', "\$value == \$self->{'floor_value'}.\n");
 				if($self->{'floor_value'} == $legend_values[$i_row]) { # This is the floor row, the "0" row.
 					if($self->{'write_floor_value'} == 1) {
 						$output_rows[$i_row] .= center_text($value, $self->{'horizontal_width'}, $SPACE, 'right');
@@ -558,7 +501,6 @@ sub chart {
 	$self->{'screen'} = \@reversed_rows;
 
 	# Clean up
-	$::DBG->exit_sub($return_value);
 	return $return_value;
 }
 
