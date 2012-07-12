@@ -1,4 +1,4 @@
-	package Text::HistogramChart;
+package Text::HistogramChart;
 
 ## no critic (Subroutines::RequireArgUnpacking)
 ## no critic (RequirePodAtEnd)
@@ -20,7 +20,8 @@ Version 0.003
 
 =cut
 
-use version 0.77 (); our $VERSION = 0.003; # Require version 0.77 of module "version". Even for Perl v.5.10.0, get latest bug-fixes and API
+#use version 0.77 (); our $VERSION = 0.003; # Require version 0.77 of module "version". Even for Perl v.5.10.0, get latest bug-fixes and API
+our $VERSION = 0.004;
 
 
 =head1 SYNOPSIS
