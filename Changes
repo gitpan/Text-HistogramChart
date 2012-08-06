@@ -13,3 +13,6 @@ Revision history for Text-HistogramChart
 0.004   2012-Jul-12
         Minor corrections.
 
+0.005   2012-Aug-06
+        Added the parameter MIN_PERL_VERSION into Makefile.PL
+

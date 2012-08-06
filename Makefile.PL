@@ -17,4 +17,5 @@ WriteMakefile(
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz'},
     clean               => { FILES => 'Text-HistogramChart-*' },
+    MIN_PERL_VERSION    => '5.008_001',
 );

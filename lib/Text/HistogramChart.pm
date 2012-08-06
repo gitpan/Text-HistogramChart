@@ -16,12 +16,12 @@ Text::HistogramChart - Make Text Histogram (Upright Bars) Charts
 
 =head1 VERSION
 
-Version 0.003
+Version 0.005
 
 =cut
 
 #use version 0.77 (); our $VERSION = 0.003; # Require version 0.77 of module "version". Even for Perl v.5.10.0, get latest bug-fixes and API
-our $VERSION = 0.004;
+our $VERSION = 0.005;
 
 
 =head1 SYNOPSIS
@@ -131,7 +131,7 @@ Set B<write_floor> to 1 if you want a horizontal bar across the screen at 0.
 
 =head1 DEPENDENCIES
 
-Requires Perl version 5.010.
+Requires Perl version 5.008.001.
 
 Requires the following modules:
 
